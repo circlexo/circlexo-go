@@ -1,0 +1,70 @@
+# Zekra on the CircleXO hub (first party): shared memory for people and AI
+# agents. The integration endpoints are the contract Zekra implements in P12
+# (MH-714).
+manifest_version: 1
+id: zekra
+publisher: 3x1
+version: 1.0.0
+name: { en: Zekra, ar: ذكرة }
+description:
+  en: A shared brain for your team and its AI agents, with memory, a knowledge graph and data sources.
+  ar: عقل مشترك لفريقك ووكلاء الذكاء الاصطناعي، مع ذاكرة ومخطط معرفي ومصادر بيانات.
+category: ai
+urls:
+  home: https://zekra.dev
+  launch: https://zekra.dev/sso/circlexo
+  support: https://zekra.dev/support
+auth:
+  redirect_uris: [https://zekra.dev/auth/circlexo/callback]
+  post_logout_redirect_uris: [https://zekra.dev/]
+  scopes: [openid, profile, email, org, entitlements]
+  service_account: true
+lifecycle:
+  provision:   { url: https://zekra.dev/api/circlexo/provision }
+  deprovision: { url: https://zekra.dev/api/circlexo/deprovision }
+  health:      { url: https://zekra.dev/api/health }
+webhooks:
+  url: https://zekra.dev/api/circlexo/events
+  events: [org.*, member.*, entitlement.*]
+entitlements:
+  features: [brains]
+  meters:   [requests]
+mcp:
+  url: https://mcp.zekra.dev/
+  transport: streamable-http
+  auth: token-exchange
+  tools:
+    - { name: brain_list,          effect: read }
+    - { name: brain_details,       effect: read }
+    - { name: brain_chat,          effect: read }
+    - { name: brain_delete,        effect: destructive }
+    - { name: brain_grant,         effect: write }
+    - { name: brain_revoke_grant,  effect: write }
+    - { name: brain_tokens,        effect: read }
+    - { name: brain_create_token,  effect: write }
+    - { name: memory_recall,       effect: read }
+    - { name: memory_recall_archive, effect: read }
+    - { name: memory_get,          effect: read }
+    - { name: memory_retain,       effect: write }
+    - { name: memory_edit,         effect: write }
+    - { name: memory_share,        effect: write }
+    - { name: memory_dedup,        effect: write }
+    - { name: memory_gaps,         effect: read }
+    - { name: memory_resolve_gap,  effect: write }
+    - { name: memory_forget,       effect: destructive }
+    - { name: graph_neighbors,     effect: read }
+    - { name: graph_ontology,      effect: read }
+    - { name: graph_path,          effect: read }
+    - { name: graph_spine,         effect: read }
+    - { name: graph_traverse,      effect: read }
+    - { name: datasource_list,     effect: read }
+    - { name: datasource_create,   effect: write }
+    - { name: datasource_sync,     effect: write }
+    - { name: datasource_delete,   effect: destructive }
+    - { name: secret_list,         effect: read }
+    - { name: secret_store,        effect: write }
+    - { name: secret_reveal,       effect: destructive }
+    - { name: secret_delete,       effect: destructive }
+listing:
+  default_locale: en
+  locales: [en, ar]

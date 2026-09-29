@@ -1,0 +1,78 @@
+# Mahaam on the CircleXO hub (first party). The integration endpoints below are
+# the contract Mahaam implements in P10 (MH-712).
+manifest_version: 1
+id: mahaam
+publisher: 3x1
+version: 1.0.0
+name: { en: Mahaam, ar: مهام }
+description:
+  en: Projects, issues, time tracking and client billing, with AI agents that work the board.
+  ar: المشاريع والمهام وتتبع الوقت وفوترة العملاء، مع وكلاء ذكاء اصطناعي يعملون على اللوحة.
+category: productivity
+urls:
+  home: https://mahaam.app
+  launch: https://console.mahaam.app/sso/circlexo
+  support: https://mahaam.app/support
+  privacy: https://mahaam.app/privacy
+  terms: https://mahaam.app/terms
+auth:
+  redirect_uris: [https://console.mahaam.app/auth/circlexo/callback]
+  post_logout_redirect_uris: [https://console.mahaam.app/]
+  scopes: [openid, profile, email, org, entitlements]
+  service_account: true
+lifecycle:
+  provision:   { url: https://console.mahaam.app/api/circlexo/provision }
+  deprovision: { url: https://console.mahaam.app/api/circlexo/deprovision }
+  health:      { url: https://console.mahaam.app/api/health }
+webhooks:
+  url: https://console.mahaam.app/api/circlexo/events
+  events: [org.*, member.*, subscription.*, entitlement.*]
+entitlements:
+  features: [projects, members, client_portal]
+mcp:
+  url: https://mcp.mahaam.app/api/mcp
+  transport: streamable-http
+  auth: token-exchange
+  tools:
+    - { name: whoami,              effect: read }
+    - { name: list_projects,       effect: read }
+    - { name: get_project,         effect: read }
+    - { name: create_project,      effect: write }
+    - { name: update_project,      effect: write }
+    - { name: archive_project,     effect: destructive }
+    - { name: list_issues,         effect: read }
+    - { name: get_issue,           effect: read }
+    - { name: create_issue,        effect: write }
+    - { name: update_issue,        effect: write }
+    - { name: comment_issue,       effect: write }
+    - { name: start_issue,         effect: write }
+    - { name: review_issue,        effect: write }
+    - { name: finish_issue,        effect: write }
+    - { name: request_approval,    effect: write }
+    - { name: list_tasks,          effect: read }
+    - { name: get_task,            effect: read }
+    - { name: create_task,         effect: write }
+    - { name: update_task,         effect: write }
+    - { name: move_task,           effect: write }
+    - { name: delete_task,         effect: destructive }
+    - { name: log_time,            effect: write }
+    - { name: list_time_entries,   effect: read }
+    - { name: delete_time_entry,   effect: destructive }
+    - { name: time_summary,        effect: read }
+    - { name: record_issue_usage,  effect: write }
+    - { name: record_ai_usage,     effect: write }
+    - { name: ai_usage_summary,    effect: read }
+    - { name: list_clients,        effect: read }
+    - { name: list_invoices,       effect: read }
+    - { name: draft_invoice_from_time, effect: write }
+    - { name: record_payment,      effect: write }
+    - { name: list_feedback,       effect: read }
+    - { name: update_feedback_status, effect: write }
+    - { name: vault_recall,        effect: read }
+    - { name: vault_remember,      effect: write }
+    - { name: vault_forget,        effect: destructive }
+    - { name: vault_reveal_secret, effect: destructive }
+    - { name: github_deploy,       effect: destructive }
+listing:
+  default_locale: en
+  locales: [en, ar]

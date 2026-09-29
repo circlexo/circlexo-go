@@ -1,0 +1,163 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://circlexo.com/schema/circlexo.app.v1.json",
+  "title": "CircleXO App Contract manifest v1 (circlexo.app.yaml)",
+  "description": "Declares how an app plugs into the CircleXO hub: identity, lifecycle, webhooks, entitlements and MCP tools. Declarative only: secrets never go in a manifest.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["manifest_version", "id", "publisher", "version", "name", "category", "urls", "auth"],
+  "properties": {
+    "manifest_version": { "const": 1 },
+    "id": {
+      "description": "Global, immutable app id.",
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{1,30}$"
+    },
+    "publisher": {
+      "description": "Publisher slug.",
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]{1,38}$"
+    },
+    "version": {
+      "description": "Semver of the integration, not of the product release.",
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(-[0-9A-Za-z.-]+)?(\\+[0-9A-Za-z.-]+)?$"
+    },
+    "name": { "$ref": "#/$defs/localized" },
+    "description": { "$ref": "#/$defs/localized" },
+    "category": {
+      "type": "string",
+      "enum": ["productivity", "ai", "automation", "developer", "infrastructure", "finance", "sales", "marketing", "operations", "hr", "commerce", "communication", "analytics", "erp", "other"]
+    },
+    "urls": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["home", "launch"],
+      "properties": {
+        "home": { "$ref": "#/$defs/url" },
+        "launch": { "$ref": "#/$defs/url", "description": "Where the launcher sends users." },
+        "support": { "$ref": "#/$defs/url" },
+        "docs": { "$ref": "#/$defs/url" },
+        "privacy": { "$ref": "#/$defs/url" },
+        "terms": { "$ref": "#/$defs/url" }
+      }
+    },
+    "auth": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["redirect_uris", "scopes"],
+      "properties": {
+        "redirect_uris": { "type": "array", "minItems": 1, "maxItems": 10, "uniqueItems": true, "items": { "$ref": "#/$defs/url" } },
+        "post_logout_redirect_uris": { "type": "array", "maxItems": 10, "uniqueItems": true, "items": { "$ref": "#/$defs/url" } },
+        "scopes": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "contains": { "const": "openid" },
+          "items": { "enum": ["openid", "profile", "email", "org", "entitlements", "offline_access"] }
+        },
+        "service_account": { "type": "boolean", "description": "Needs client_credentials for server-to-server calls." },
+        "token_signing_alg": { "enum": ["RS256", "EdDSA"], "description": "How CircleXO signs this app's ID and access tokens. Default RS256." },
+        "jwks_uri": { "$ref": "#/$defs/url", "description": "The app's public keys, for private_key_jwt client authentication instead of a client secret." },
+        "jwks": {
+          "type": "object",
+          "description": "The app's public keys inline, instead of jwks_uri.",
+          "required": ["keys"],
+          "properties": {
+            "keys": {
+              "type": "array", "minItems": 1, "maxItems": 10,
+              "items": { "type": "object", "required": ["kty", "kid"], "properties": { "kty": { "enum": ["RSA", "EC", "OKP"] }, "kid": { "type": "string", "minLength": 1, "maxLength": 128 } } }
+            }
+          }
+        },
+        "require_par": { "type": "boolean", "description": "Only accept authorization requests pushed to /oauth2/par first." }
+      }
+    },
+    "lifecycle": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "provision": { "$ref": "#/$defs/endpoint" },
+        "deprovision": { "$ref": "#/$defs/endpoint" },
+        "health": { "$ref": "#/$defs/endpoint" }
+      }
+    },
+    "webhooks": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["url", "events"],
+      "properties": {
+        "url": { "$ref": "#/$defs/url" },
+        "events": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string", "pattern": "^(org|member|subscription|entitlement|install|app)\\.(\\*|[a-z_]+)$" }
+        }
+      }
+    },
+    "entitlements": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "features": { "$ref": "#/$defs/keys" },
+        "meters": { "$ref": "#/$defs/keys" }
+      }
+    },
+    "mcp": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["url", "transport", "auth", "tools"],
+      "properties": {
+        "url": { "$ref": "#/$defs/url" },
+        "transport": { "enum": ["streamable-http", "sse"] },
+        "auth": { "enum": ["token-exchange", "oauth", "none"] },
+        "tools": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "effect"],
+            "properties": {
+              "name": { "type": "string", "pattern": "^[a-zA-Z][a-zA-Z0-9_.-]{0,63}$" },
+              "effect": { "enum": ["read", "write", "destructive"] },
+              "description": { "type": "string", "maxLength": 300 }
+            }
+          }
+        }
+      }
+    },
+    "listing": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "default_locale": { "enum": ["en", "ar"] },
+        "locales": { "type": "array", "minItems": 1, "uniqueItems": true, "items": { "enum": ["en", "ar"] } }
+      }
+    }
+  },
+  "$defs": {
+    "url": { "type": "string", "format": "uri", "pattern": "^https?://", "maxLength": 2048 },
+    "endpoint": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["url"],
+      "properties": { "url": { "$ref": "#/$defs/url" } }
+    },
+    "localized": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["en"],
+      "properties": {
+        "en": { "type": "string", "minLength": 1, "maxLength": 200 },
+        "ar": { "type": "string", "minLength": 1, "maxLength": 200 }
+      }
+    },
+    "keys": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": { "type": "string", "pattern": "^[a-z][a-z0-9_.-]{0,62}$" }
+    }
+  }
+}
