@@ -31,7 +31,8 @@ type RP struct {
 	Config circlexo.Config
 	// RedirectURL is the registered callback URL.
 	RedirectURL string
-	// Scopes requested; default openid profile email org entitlements offline_access.
+	// Scopes requested; default openid profile email org entitlements. Add offline_access
+	// (and register it in the app manifest) for refresh tokens that outlive the hub session.
 	Scopes []string
 	// Key seals the login state and session cookies; 32 random bytes kept in
 	// a secret store. Rotating it signs everyone out.
@@ -85,7 +86,7 @@ func New(cfg circlexo.Config, redirectURL string, key []byte) (*RP, error) {
 
 func (rp *RP) scopes() string {
 	if len(rp.Scopes) == 0 {
-		return "openid profile email org entitlements offline_access"
+		return "openid profile email org entitlements"
 	}
 	return strings.Join(rp.Scopes, " ")
 }
