@@ -56,6 +56,8 @@ type Hub struct {
 // User is who the fake hub signs in.
 type User struct {
 	ID, Email, Name, OrgID, OrgRole string
+	// EmailUnverified makes the ID token say email_verified=false.
+	EmailUnverified bool
 }
 
 type codeGrant struct {
@@ -242,7 +244,7 @@ func (h *Hub) token(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		at := h.AccessToken(map[string]any{"sub": g.user.ID, "org_id": g.user.OrgID, "org_role": g.user.OrgRole, "scope": g.scope})
-		id := h.sign(jwt.MapClaims{"iss": h.URL, "aud": h.ClientID, "sub": g.user.ID, "nonce": g.nonce, "email": g.user.Email,
+		id := h.sign(jwt.MapClaims{"iss": h.URL, "aud": h.ClientID, "sub": g.user.ID, "nonce": g.nonce, "email": g.user.Email, "email_verified": !g.user.EmailUnverified,
 			"name": g.user.Name, "sid": "sid-1", "iat": now.Unix(), "exp": now.Add(10 * time.Minute).Unix(), "org_id": g.user.OrgID}, "")
 		writeJSON(w, 200, map[string]any{"access_token": at, "id_token": id, "refresh_token": "rt_" + randID(), "token_type": "Bearer", "expires_in": 600, "scope": g.scope})
 	case "refresh_token":
