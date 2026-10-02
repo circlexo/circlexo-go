@@ -17,7 +17,8 @@ go get github.com/circlexo/circlexo-go
 | `circlexo/service` | Service tokens (`client_credentials` with a secret or `private_key_jwt`) and token exchange |
 | `circlexo/mcp` | Securing a product MCP endpoint for the CircleXO gateway |
 | `circlexo/manifest` | `circlexo.app.yaml` types and validation (`go run github.com/circlexo/circlexo-go/cmd/circlexo app validate`) |
-| `circlexo/circlexotest` | An in-memory hub for your tests |
+| `circlexo/cms` | The Nasaq CMS client: resolve host + path, register routes and sitemap, menus, entries, projects and app bindings, a resolve cache and a host middleware |
+| `circlexo/circlexotest` | An in-memory hub and an in-memory CMS (`NewCMS`) for your tests |
 
 ## Configuration
 
@@ -140,6 +141,68 @@ mux.Handle("/.well-known/oauth-protected-resource", mcp.ProtectedResource("https
 mux.Handle("/mcp", mcp.Middleware(mcp.Options{Verifier: circlexo.NewVerifier(cfg),
 	ResourceMetadataURL: "https://app.example/.well-known/oauth-protected-resource"})(mcpServer))
 // In a tool: c := mcp.FromContext(ctx); policy.Allowed(ctx, c, "create_issue"); audit c.UserID and c.Actors().
+```
+
+## CMS (Nasaq)
+
+Nasaq resolves, apps render. The CMS tells your app what lives at a host and path (an entry, a redirect, or one of your registered routes) and supplies the SEO; the app keeps its own renderer.
+
+| Variable | |
+|---|---|
+| `CIRCLEXO_CMS_URL` | The CMS, default `https://nasaq.circlexo.com` |
+
+```go
+c := cms.NewClient(cfg, nil) // app key; or cms.NewClient(cfg, service.NewSource(svc, scopes...)); cms.New(url, tokens) for a custom URL
+
+// At startup (and when routes or products change): tell the project what you serve.
+c.RegisterRoutes(ctx, "acme", "matjar", []cms.RouteRegistration{{Pattern: "/products/{slug}", Name: "Product"}})
+c.PushSitemap(ctx, "acme", "matjar", entries, true) // replace this app's earlier entries
+
+// Per request: resolve the host and path, with a short cache.
+res, err := cms.Cached(c, 30*time.Second).Resolve(ctx, "acme.circlexo.com", "/ar/products/shoe", "")
+switch {
+case res.IsRedirect(): http.Redirect(w, r, res.Redirect.To, res.Redirect.Status)
+case res.IsRoute():    // res.Route.Params["slug"], res.Route.AppRef (your tenant id), res.SEO for the head
+case res.NotFound():   // res.Status is 404
+default:               // an entry: res.Entry.Fields
+}
+```
+
+As middleware, `HostMiddleware` resolves every request (the host is `X-Forwarded-Host` or `Host`) and stores the result:
+
+```go
+resolver := cms.Cached(c, 30*time.Second)
+mux := cms.HostMiddleware(resolver, "matjar", func(ctx context.Context, res *cms.Resolution) context.Context {
+	return withTenant(ctx, res.Route.AppRef) // optional: enrich the context; res.Route may be nil
+}, cms.Options{Redirects: true})(handler)
+
+// In a handler: cms.FromContext(ctx), cms.Params(ctx)["slug"], cms.AppRef(ctx).
+```
+
+Without `Redirects`, redirects reach the handler. If Resolve fails, the request continues with no Resolution unless `Options.OnError` is set.
+
+Reads take a `cms.Scope`: `cms.ForHost("acme.circlexo.com")` or `cms.InProject("acme")` (id or slug).
+
+```go
+menu, _ := c.Menu(ctx, cms.ForHost(host), "main", "ar")
+list, _ := c.Entries(ctx, cms.ListOpts{Scope: cms.InProject("acme"), Type: "post", Limit: 10})
+post, _ := c.Entry(ctx, cms.InProject("acme"), "post", "hello", "en")
+
+p, _ := c.CreateProject(ctx, cms.NewProject{Name: "Cafe Nour", Slug: "nour"})
+c.BindApp(ctx, p.ID, cms.Binding{App: "matjar", AppRef: tenantID, Role: "storefront", RenderURL: "https://matjar-nour.circlexo.com"})
+full, _ := c.GetProject(ctx, p.ID) // Domains, Theme, Bindings
+```
+
+Also `ListProjects`, `Domains` and `Theme`. Errors are `*circlexo.APIError`, so `circlexo.IsStatus(err, 404)` works. Test against `circlexotest.NewCMS(t)`:
+
+```go
+f := circlexotest.NewCMS(t)
+p := f.AddProject("acme", "acme.circlexo.com")
+p.AddEntry("page", "home", map[string]any{"title": cms.Localized{"en": "Home", "ar": "الرئيسية"}})
+p.AddRedirect("/old", "/about", 301)
+p.Bind(cms.Binding{App: "matjar", AppRef: "store-1"})
+p.Route("matjar", cms.RouteRegistration{Pattern: "/products/{slug}"})
+c := f.Client()            // after your code calls RegisterRoutes, assert on p.Routes["matjar"] and p.Sitemap["matjar"]
 ```
 
 ## Testing
