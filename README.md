@@ -142,6 +142,19 @@ mux.Handle("/mcp", mcp.Middleware(mcp.Options{Verifier: circlexo.NewVerifier(cfg
 // In a tool: c := mcp.FromContext(ctx); policy.Allowed(ctx, c, "create_issue"); audit c.UserID and c.Actors().
 ```
 
+## Locations and addresses
+
+The hub serves a public location database (countries, cities, areas, currencies, languages; English and Arabic) at `/api/locations`; no credentials needed.
+
+```go
+loc := locations.New("https://accounts.circlexo.com", nil)
+hits, _ := loc.Search(ctx, "cairo", locations.SearchOptions{Type: "city"}) // English or Arabic prefix
+cities, _ := loc.Cities(ctx, 65, 0, 0)
+addr, formatted, err := loc.FormatAddress(ctx, locations.Address{CountryID: 65, CityID: 1, Street: "15 Tahrir St", Phone: "+201001234567"})
+```
+
+Store `locations.Address` (ids of the country, city and area plus street, building, floor, apartment, landmark, postal code, lat/lng, E.164 phone). `FormatAddress` validates it and writes it in English and Arabic; an invalid one is an `*locations.Error` (422, `Fields`).
+
 ## Testing
 
 ```go
