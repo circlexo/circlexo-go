@@ -5,7 +5,7 @@ manifest_version: 1
 id: zekra
 publisher: 3x1
 version: 1.0.0
-name: { en: Zekra, ar: ذكرة }
+name: { en: Zekra, ar: ذكرى }
 description:
   en: A shared brain for your team and its AI agents, with memory, a knowledge graph and data sources.
   ar: عقل مشترك لفريقك ووكلاء الذكاء الاصطناعي، مع ذاكرة ومخطط معرفي ومصادر بيانات.
