@@ -56,6 +56,8 @@ type Hub struct {
 // User is who the fake hub signs in.
 type User struct {
 	ID, Email, Name, OrgID, OrgRole string
+	// Picture is the picture claim (absolute avatar URL); empty omits it.
+	Picture string
 	// EmailUnverified makes the ID token say email_verified=false.
 	EmailUnverified bool
 }
@@ -244,8 +246,12 @@ func (h *Hub) token(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		at := h.AccessToken(map[string]any{"sub": g.user.ID, "org_id": g.user.OrgID, "org_role": g.user.OrgRole, "scope": g.scope})
-		id := h.sign(jwt.MapClaims{"iss": h.URL, "aud": h.ClientID, "sub": g.user.ID, "nonce": g.nonce, "email": g.user.Email, "email_verified": !g.user.EmailUnverified,
-			"name": g.user.Name, "sid": "sid-1", "iat": now.Unix(), "exp": now.Add(10 * time.Minute).Unix(), "org_id": g.user.OrgID}, "")
+		idc := jwt.MapClaims{"iss": h.URL, "aud": h.ClientID, "sub": g.user.ID, "nonce": g.nonce, "email": g.user.Email, "email_verified": !g.user.EmailUnverified,
+			"name": g.user.Name, "sid": "sid-1", "iat": now.Unix(), "exp": now.Add(10 * time.Minute).Unix(), "org_id": g.user.OrgID}
+		if g.user.Picture != "" {
+			idc["picture"] = g.user.Picture
+		}
+		id := h.sign(idc, "")
 		writeJSON(w, 200, map[string]any{"access_token": at, "id_token": id, "refresh_token": "rt_" + randID(), "token_type": "Bearer", "expires_in": 600, "scope": g.scope})
 	case "refresh_token":
 		if !strings.HasPrefix(r.PostFormValue("refresh_token"), "rt_") {
@@ -327,6 +333,17 @@ func (h *Hub) api(w http.ResponseWriter, r *http.Request) {
 		}
 		t.ProductTenantID, t.ProductTenantSlug, t.Status = in.ProductTenantID, in.Slug, "active"
 		h.Tenants[in.OrgID] = t
+		writeJSON(w, 200, t)
+	case r.Method == "DELETE" && r.URL.Path == "/api/apps/tenants":
+		// Release: the install goes removed, which the hub's GET answers as 404.
+		q := r.URL.Query()
+		t, ok := h.Tenants[q.Get("org_id")]
+		if !ok || t.ProductTenantID != q.Get("product_tenant_id") {
+			apiErr(w, 404, "not_installed")
+			return
+		}
+		delete(h.Tenants, t.OrgID)
+		t.Status, t.ProductTenantID = "removed", ""
 		writeJSON(w, 200, t)
 	case r.Method == "GET" && r.URL.Path == "/api/apps/tenants":
 		q := r.URL.Query()

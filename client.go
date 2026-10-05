@@ -126,7 +126,7 @@ type Tenant struct {
 	AppID             string    `json:"app_id"`
 	ProductTenantID   string    `json:"product_tenant_id"`
 	ProductTenantSlug string    `json:"product_tenant_slug"`
-	Status            string    `json:"status"` // provisioning, active, suspended
+	Status            string    `json:"status"` // provisioning, active, suspended, removed
 	InstalledBy       string    `json:"installed_by,omitempty"`
 	CreatedAt         time.Time `json:"created_at"`
 	UpdatedAt         time.Time `json:"updated_at"`
@@ -137,6 +137,16 @@ type Tenant struct {
 func (c *Client) ConfirmTenant(ctx context.Context, orgID, productTenantID, slug string) (Tenant, error) {
 	var t Tenant
 	err := c.call(ctx, http.MethodPost, "/api/apps/tenants", map[string]string{"org_id": orgID, "product_tenant_id": productTenantID, "slug": slug}, &t)
+	return t, err
+}
+
+// ReleaseTenant tells the hub the product deleted productTenantID, orgID's
+// tenant, on its own (an admin deleted the workspace). The install goes
+// removed, so TenantByOrg answers 404 and signing in must not provision it
+// again; a reinstall from the hub starts a fresh tenant (scope tenants.write).
+func (c *Client) ReleaseTenant(ctx context.Context, orgID, productTenantID string) (Tenant, error) {
+	var t Tenant
+	err := c.call(ctx, http.MethodDelete, "/api/apps/tenants?org_id="+url.QueryEscape(orgID)+"&product_tenant_id="+url.QueryEscape(productTenantID), nil, &t)
 	return t, err
 }
 

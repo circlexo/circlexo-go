@@ -48,6 +48,24 @@ type Claims struct {
 	Raw       map[string]any `json:"-"`
 }
 
+// Profile is who the person is on the hub, from the profile and email
+// claims of an ID token or userinfo. The hub owns it: products overwrite
+// their copy with it on every sign-in and on user.updated.
+type Profile struct {
+	Name          string
+	Email         string
+	EmailVerified bool
+	Picture       string // absolute URL, empty when none
+	Locale        string
+}
+
+// Profile reads the profile claims.
+func (c *Claims) Profile() Profile {
+	str := func(k string) string { v, _ := c.Raw[k].(string); return v }
+	verified, _ := c.Raw["email_verified"].(bool)
+	return Profile{Name: str("name"), Email: str("email"), EmailVerified: verified, Picture: str("picture"), Locale: str("locale")}
+}
+
 // Actor is one link of an act chain.
 type Actor struct {
 	Subject  string `json:"sub"`
