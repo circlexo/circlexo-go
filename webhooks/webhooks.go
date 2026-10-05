@@ -27,6 +27,9 @@ const (
 	MemberRoleChanged  = "member.role_changed"
 	SessionRevoked     = "session.revoked"
 	EntitlementChanged = "entitlement.changed"
+	// UserUpdated: a person changed their name, locale, avatar, profile or
+	// primary email on the hub. Update your copy (Envelope.User).
+	UserUpdated = "user.updated"
 )
 
 // Headers.
@@ -97,6 +100,24 @@ type SessionData struct {
 	SessionID string `json:"sid"`
 }
 
+// UserData is the data of user.updated: the person as they are now.
+type UserData struct {
+	User UserPerson `json:"user"`
+}
+
+// UserPerson is Person with what the person shares about themselves.
+// AvatarURL is absolute (empty when they have none).
+type UserPerson struct {
+	Person
+	EmailVerified bool   `json:"email_verified"`
+	AvatarURL     string `json:"avatar_url"`
+	Bio           string `json:"bio"`
+	JobTitle      string `json:"job_title"`
+	Timezone      string `json:"timezone"`
+	Country       string `json:"country"`
+	Website       string `json:"website"`
+}
+
 // EntitlementData is the data of entitlement.changed.
 type EntitlementData struct {
 	Version int64  `json:"version"`
@@ -121,6 +142,12 @@ func (e *Envelope) Session() (SessionData, error) {
 // Entitlement decodes entitlement.changed data.
 func (e *Envelope) Entitlement() (EntitlementData, error) {
 	var d EntitlementData
+	return d, json.Unmarshal(e.Data, &d)
+}
+
+// User decodes user.updated data.
+func (e *Envelope) User() (UserData, error) {
+	var d UserData
 	return d, json.Unmarshal(e.Data, &d)
 }
 

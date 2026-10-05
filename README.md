@@ -119,6 +119,23 @@ mux.Handle("/api/circlexo/events", wh)
 - `client.Org(ctx, orgID)` returns the org and its members, so you can sync them.
 - `client.TenantByProductID` maps the other way.
 - With more than one instance, set `wh.Seen` to a shared deduper.
+- **Never re-create a tenant the product deleted.**
+  - At sign-in, provision only while `TenantByOrg` reports `provisioning`.
+  - When an admin deletes the tenant in your product, call `client.ReleaseTenant(ctx, orgID, tenantID)`. The install goes `removed`, and a reinstall from the hub starts a fresh one.
+
+## Profile sync
+
+The hub owns the person's name, email and avatar.
+
+- Overwrite your copy with `login.IDClaims.Profile()` on every sign-in. `Picture` is an absolute URL.
+- Also overwrite it on `user.updated`:
+
+```go
+wh.Handle(webhooks.UserUpdated, func(ctx context.Context, e *webhooks.Envelope) error {
+	d, _ := e.User()
+	return users.UpdateProfile(ctx, d.User.ProductUserID, d.User.DisplayName, d.User.Email, d.User.AvatarURL)
+})
+```
 
 ## Service calls and token exchange
 
