@@ -1,6 +1,22 @@
+<div align="center">
+
+<img src=".github/assets/logo.svg" alt="CircleXO" width="96" />
+
 # circlexo-go
 
-The Go SDK for CircleXO apps. It lets a product use CircleXO sign-in, org membership, entitlements, pay-as-you-go usage, hub webhooks and the MCP gateway.
+**The Go SDK for CircleXO apps: sign-in, org membership, entitlements, pay-as-you-go usage, hub webhooks, the MCP gateway and the Nasaq CMS, with an in-memory hub for your tests.**
+
+[![test](https://github.com/circlexo/circlexo-go/actions/workflows/test.yml/badge.svg)](https://github.com/circlexo/circlexo-go/actions/workflows/test.yml)
+[![Go Reference](https://pkg.go.dev/badge/github.com/circlexo/circlexo-go.svg)](https://pkg.go.dev/github.com/circlexo/circlexo-go)
+[![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](LICENSE)
+[![GitHub stars](https://img.shields.io/github/stars/circlexo/circlexo-go?style=social)](https://github.com/circlexo/circlexo-go/stargazers)
+
+[CircleXO](https://circlexo.com) · [Docs](https://github.com/circlexo/docs) · [Discussions](https://github.com/circlexo/circlexo-go/discussions) · [Issues](https://github.com/circlexo/circlexo-go/issues)
+
+</div>
+
+## Quick start
+
 
 ```sh
 go get github.com/circlexo/circlexo-go
@@ -234,6 +250,30 @@ token := hub.AccessToken(map[string]any{"scope": "openid org"})
 
 The SDK's own tests run against it. `TestLive` runs against a real hub when `CIRCLEXO_LIVE_ORG` is set.
 
+## Documentation
+
+- API reference: [pkg.go.dev/github.com/circlexo/circlexo-go](https://pkg.go.dev/github.com/circlexo/circlexo-go)
+- Platform docs: [circlexo/docs](https://github.com/circlexo/docs)
+
+## Contributing
+
+Bug reports, docs and code are all welcome. Start with [CONTRIBUTING.md](CONTRIBUTING.md), which
+covers setup, conventions and the DCO sign-off, then look for a
+[`good first issue`](https://github.com/circlexo/circlexo-go/labels/good%20first%20issue). AI coding
+agents should start with [AGENTS.md](AGENTS.md).
+
+## Community
+
+- [GitHub Discussions](https://github.com/circlexo/circlexo-go/discussions): questions, ideas, show and tell
+- [Issues](https://github.com/circlexo/circlexo-go/issues/new/choose): bugs and feature requests
+- Security reports: see [SECURITY.md](SECURITY.md)
+
+Please follow the [Code of Conduct](CODE_OF_CONDUCT.md).
+
 ## License
 
-Proprietary. © 3x1.
+Copyright (C) 2026 3x1. circlexo-go is free software, licensed under the
+[GNU Affero General Public License v3.0](LICENSE). Third-party components keep their own licenses.
+
+**Commercial licensing available:** for a license without the AGPL obligations, contact
+[info@3x1.io](mailto:info@3x1.io).

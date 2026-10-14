@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions and help
+    url: https://github.com/circlexo/circlexo-go/discussions/categories/q-a
+    about: Ask and answer questions in GitHub Discussions.
+  - name: Report a security vulnerability
+    url: https://github.com/circlexo/circlexo-go/security/advisories/new
+    about: Please report security issues privately (or email info@3x1.io), never as a public issue.
