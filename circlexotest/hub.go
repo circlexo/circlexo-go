@@ -69,9 +69,17 @@ type codeGrant struct {
 
 // New starts a hub for appID. It closes when the test ends.
 func New(t testing.TB, appID string) *Hub {
+	h := NewServer(appID)
+	t.Cleanup(h.Close)
+	return h
+}
+
+// NewServer starts a fake hub for examples and other callers without a testing.TB.
+// The caller must close the hub when finished. For tests, prefer New.
+func NewServer(appID string) *Hub {
 	_, key, err := ed25519.GenerateKey(rand.Reader)
 	if err != nil {
-		t.Fatal(err)
+		panic(err)
 	}
 	h := &Hub{
 		AppID: appID, ClientID: "cxo_app_" + appID, ClientSecret: "cxs_test_secret", AppKey: "cxa_test_key",
@@ -81,7 +89,6 @@ func New(t testing.TB, appID string) *Hub {
 		key:  key, codes: map[string]codeGrant{}, pars: map[string]string{}, now: time.Now,
 	}
 	h.Server = httptest.NewServer(http.HandlerFunc(h.serve))
-	t.Cleanup(h.Close)
 	return h
 }
 

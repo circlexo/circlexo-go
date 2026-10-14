@@ -36,6 +36,18 @@ go get github.com/circlexo/circlexo-go
 | `circlexo/cms` | The Nasaq CMS client: resolve host + path, register routes and sitemap, menus, entries, projects and app bindings, a resolve cache and a host middleware |
 | `circlexo/circlexotest` | An in-memory hub and an in-memory CMS (`NewCMS`) for your tests |
 
+## Runnable API examples
+
+The `example_test.go` files cover configuration, token verification, OIDC login
+and callback, authentication middleware, idempotent usage, and webhook verification.
+Run them locally with `go test -run '^Example' ./...`; Go documentation displays them
+alongside their entry points once the version containing them is indexed.
+
+Examples use the in-memory `circlexotest.NewServer(appID)` hub. Call `defer hub.Close()`
+when using this caller-owned constructor; tests with a `testing.TB` should keep using
+`circlexotest.New(t, appID)`, which registers cleanup automatically. The examples use
+fictional credentials and local HTTP servers, and need no CircleXO account.
+
 ## Configuration
 
 Keep every value below in your secret store or environment. Never put them in source or in examples.
