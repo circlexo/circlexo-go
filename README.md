@@ -38,6 +38,10 @@ go get github.com/circlexo/circlexo-go
 
 ## Configuration
 
+For a complete runnable `net/http` app, see [examples/basic](examples/basic).
+It combines sign-in, a protected route, entitlement checks and idempotent usage reporting,
+with offline tests against `circlexotest`.
+
 Keep every value below in your secret store or environment. Never put them in source or in examples.
 
 | Variable | |
