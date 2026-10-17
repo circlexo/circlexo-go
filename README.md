@@ -38,6 +38,8 @@ go get github.com/circlexo/circlexo-go
 
 ## Configuration
 
+See the [changelog](CHANGELOG.md) for version history and upgrade notes.
+
 Keep every value below in your secret store or environment. Never put them in source or in examples.
 
 | Variable | |

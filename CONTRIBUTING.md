@@ -64,6 +64,25 @@ Forgot? `git commit --amend -s` for the last commit, or `git rebase --signoff ma
 circlexo-go is licensed under the [GNU AGPL-3.0](LICENSE). By contributing you agree your contribution
 is licensed under the same terms.
 
+## Releases
+
+Record user-visible changes under `[Unreleased]` in [CHANGELOG.md](CHANGELOG.md).
+Before releasing, run the checks above and review the changes since the latest
+tag. Move the unreleased entries into a dated `X.Y.Z` section, update the compare
+links, and commit the changelog on `main`.
+
+A maintainer then tags that tested commit with an annotated `vX.Y.Z` tag and
+pushes the tag. For example, after choosing `0.3.0` as the next version:
+
+```bash
+git tag -a v0.3.0 -m "Release v0.3.0"
+git push origin v0.3.0
+```
+
+Use the chosen version in place of the example. Go consumers can then pin it
+with `go get github.com/circlexo/circlexo-go@v0.3.0`. Release tagging is a
+maintainer action; a contribution PR should only add its changelog entry.
+
 ## Community
 
 - **Questions and ideas:** [GitHub Discussions](https://github.com/circlexo/circlexo-go/discussions)
